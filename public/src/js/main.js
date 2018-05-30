@@ -1,5 +1,5 @@
 
-dragTask.init();
+dragElement.init();
 
 
 var parentElements = document.querySelector('.parent-elements');
@@ -37,7 +37,7 @@ function drawTypes() {
 }
 
 function drawQuestionTemplate(data) {
-    switch (data.type) {
+    /*switch (data.type) {
         case 'one':
         break;
         case 'multi':
@@ -48,7 +48,8 @@ function drawQuestionTemplate(data) {
         break;
         case 'description':
         break;
-    }
+    }*/
+    return el ('div', {class: ''})
 }
 
 if (controlBlock) {

@@ -1,0 +1,38 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.parent-elements {
+    display: block;
+    width: 100%;
+}
+.parent-elements::before, .parent-elements::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.parent-elements > .element {
+    float: left;
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    text-align: center;
+    background-color: rgb(136, 241, 224);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.parent-elements > .element.moving {
+    background-color: rgb(206, 56, 56);
+    position: absolute;
+    width: 200px;
+}

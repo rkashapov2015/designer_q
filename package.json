@@ -1,0 +1,17 @@
+{
+  "name": "designer_q",
+  "version": "1.0.0",
+  "description": "Designer Questionnaire",
+  "main": "index.html",
+  "scripts": {
+    "serve": "lite-server -c=config.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "lite-server": "^2.3.0"
+  },
+  "dependencies": {
+    "bootstrap": "^3.3.7"
+  }
+}

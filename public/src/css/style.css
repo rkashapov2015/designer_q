@@ -39,8 +39,8 @@ html, body {
 }
 
 .question-element {
-    
+    width: 100%;
 }
 .question-element > div {
-    
+    float: left;
 }

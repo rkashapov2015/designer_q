@@ -7,7 +7,15 @@ var dragElement = {
     shiftY: 0,
     boundsX: 0,
     boundsY: 0,
-    init: function () {
+    init: function (args) {
+        if (typeof args === 'object') {
+            if (args.hasOwnProperty('parentClass') && args.parentClass) {
+                dragElement.parentClass = args.parentClass;
+            }
+            if (args.hasOwnProperty('childClass') && args.childClass) {
+                dragElement.childCass = args.childClass;
+            }
+        }
         dragElement.parentElements = document.querySelector('.' + dragElement.parentClass);
         dragElement.parentElements.addEventListener('mousedown', function (e) {
             if (!e.target.classList.contains(dragElement.childClass)) { return false; }
@@ -18,7 +26,7 @@ var dragElement = {
             dragElement.boundsY = bounds.top;
             dragElement.shiftX = e.pageX - bounds.left - window.pageXOffset;
             dragElement.shiftY = e.pageY - bounds.top - window.pageYOffset;
-            console.log('shift', dragElement.shiftX, dragElement.shiftY);
+            //console.log('shift', dragElement.shiftX, dragElement.shiftY);
         });
         
         dragElement.parentElements.addEventListener('mousemove', function (e) {
@@ -34,7 +42,12 @@ var dragElement = {
         document.addEventListener('mouseup', function (e) {
             if (dragElement.movedElement) {
                 dragElement.movedElement.style.visibility = 'hidden';
-                var check = document.elementFromPoint(e.clientX, e.clientY).closest('.' + dragElement.childClass);
+
+                var check = null;
+                if (document.elementFromPoint(e.clientX, e.clientY)) {
+                    check = document.elementFromPoint(e.clientX, e.clientY).closest('.' + dragElement.childClass);
+                }
+                
                 dragElement.movedElement.style.visibility = 'visible';
                 
                 if (check) {

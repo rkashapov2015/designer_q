@@ -9,12 +9,24 @@ html, body {
     width: 100%;
     box-sizing: border-box;
 }
-
+.designer-construct {
+    min-height: 300px;
+}
 .parent-elements {
     display: block;
     width: 100%;
 }
-.parent-elements::before, .parent-elements::after {
+.constructor-block {
+    float: left;
+    width: 100%;
+}
+
+.parent-elements::before, .parent-elements::after, 
+variants:before, variants:after, 
+.constructor-block:before, .constructor-block:after,
+.design-q-controls-top:before, .design-q-controls-top:after,
+.constructor-block:before, .constructor-block:after
+ {
     content: '';
     display: table;
     clear: both;
@@ -51,8 +63,8 @@ input:hover {
 .parent-elements > .element.moving {
     background-color: rgb(206, 56, 56);
     opacity: 0.8;
-    position: absolute;         
-    /*width: 200px;*/
+    position: absolute;
+    z-index: 999;
 }
 
 .question-element {
@@ -74,17 +86,25 @@ input:hover {
 .question-type {
     width: 90%;
     min-height: 35px;
-
+    margin-bottom: 5px;
 }
 .question-close {
     width: 10%;
     min-height: 35px;
     text-align: right;
+    margin-bottom: 5px;
 }
 .question-text {
-    margin: 2px 0;
+    margin: 0px 0 5px;
     width: 100%;
 }
 .question-text input {
     width: 100%;
+}
+.variants {
+    margin-right: -15px;
+    margin-left: -15px;
+}
+.variant-tool {
+    margin-bottom: 5px;
 }

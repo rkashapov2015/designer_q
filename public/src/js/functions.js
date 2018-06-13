@@ -65,3 +65,37 @@ function clearNode(node) {
         node.removeChild(node.firstChild);
     }
 }
+
+function getParentByClassname(object, className) {
+    if (!object) {
+        return false;
+    }
+    var currentLevel = object;
+    while (currentLevel.parentNode) {
+        try {
+            if (currentLevel.parentNode.classList.contains(className)) {
+                return currentLevel.parentNode;
+            }
+            currentLevel = currentLevel.parentNode;
+        } catch (error) {
+            return false;
+        }
+    }
+    return false;
+}
+
+function showBlock(node) {
+    if (!node) {
+        return false;
+    }
+    if (isHidden(node)) {
+        node.style.display = "block";
+    } else {
+        node.style.display = "none";
+    }
+}
+
+function isHidden(el) {
+    var style = window.getComputedStyle(el);
+    return (style.display === 'none');
+}

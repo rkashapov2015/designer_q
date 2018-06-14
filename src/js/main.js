@@ -191,7 +191,14 @@ var designerQ = {
                             }
                             if (name === 'qvar') {
                                 if (arrayData[id].hasOwnProperty('variants')) {
-                                    arrayData[id]['variants'].push(value.value);
+                                    
+                                    if (nameArr.length > 2 && arrayData[id]['variants'].length > 0 ) {
+                                        var old = arrayData[id]['variants'][arrayData[id]['variants'].length-1];
+                                        arrayData[id]['variants'][arrayData[id]['variants'].length-1] = {'text': old, checked: 1};
+                                    } else {
+                                        arrayData[id]['variants'].push(value.value);
+                                    }
+                                    
                                 } else {
                                     arrayData[id]['variants'] = [value.value];
                                 }
@@ -202,6 +209,7 @@ var designerQ = {
                         var data = Object.values(arrayData);
                         console.log(data);
                         console.log(JSON.stringify(data));
+                        designerQ.dataTemplate = JSON.stringify(data);
                         
                     break;
                     case 'demo':
@@ -218,6 +226,24 @@ var designerQ = {
                 }
             }
         });
+        designerQ.parentTag.addEventListener('change', function (e) {
+            if (e.target.tagName === 'INPUT' && (e.target.getAttribute('type') === 'checkbox' || e.target.getAttribute('type') === 'radio' )) {
+                
+            }
+        });
+        /*designerQ.parentTag.addEventListener('input', function (e) {
+            if (e.target.classList.contains('additional-textbox')) {
+                //console.log(e.target.value);
+                var checkbox = e.target.previousElementSibling;
+                if (checkbox && checkbox.tagName === 'INPUT') {
+                    if (e.target.value) {
+                        checkbox.checked = true;
+                    } else {
+                        checkbox.checked = false;
+                    }
+                }
+            }
+        });*/
         controlBlock.appendChild(
             el ('div', {class: 'form-group'}, [
                 el ('label', {}, 'Создать элемент анкеты'),
@@ -240,11 +266,22 @@ var designerQ = {
         return designerQ._drawTemplate(type, options);
     },
     _drawQuestionVariant: function(id, value) {
+        name = value;
+        var optionVarCheck = {type: "checkbox", name: 'qvar_' + id + '_text', value: 1};
+        if (typeof value === 'undefined') {
+            name = '';
+        }
+        if (typeof value === 'object') {
+            name = value.text;
+            if (value.checked) {
+                optionVarCheck['checked'] = 1;
+            }
+        }
         return el ('div', {class: 'variant-tool'}, [
             el ('div', {class: 'input-group'},[
-                el ('input', {class: 'form-control', name: 'qvar_' + id , 'placeholder': 'Текст варианта', value: value?value:''}),
+                el ('input', {class: 'form-control', name: 'qvar_' + id , 'placeholder': 'Текст варианта', value: name?name:''}),
                 el ('span', {class: 'input-group-addon'}, [
-                    el ('input', {type: "checkbox", name: 'qvar_' + id + '_text', value: 1}, 'Текст')
+                    el ('input', optionVarCheck, 'Текст')
                 ]),
                 el ('span', {class: 'input-group-btn'}, [
                     el ('button', {class: 'btn btn-danger', 'data-action': 'delete-variant'}, 'X')
@@ -360,9 +397,22 @@ var designerQ = {
         var common = document.createDocumentFragment();
         
         Array.from(options.variants).forEach( function (element) {
-            var textNode = document.createTextNode(element);
+            var text = element;
+            var additionalField = false;
+            if (typeof element === 'object') {
+                text = element.text;
+                additionalField = true;
+            }
+
+            var textNode = document.createDocumentFragment();
+            textNode.appendChild(document.createTextNode(text));
+
+            if (additionalField) {
+                textNode.appendChild(el ('input', {type: 'text', class: 'additional-textbox', placeholder: 'Напишите свой вариант' }))
+            }
+
             var optionsTag = {type: type, name: 'q_' + options.id};
-            if (options.checkedElements && options.checkedElements.indexOf(element) != -1) {
+            if (options.checkedElements && options.checkedElements.indexOf(text) != -1) {
                 optionsTag['checked'] = 1;
             }
             common.appendChild(

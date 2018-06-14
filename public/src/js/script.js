@@ -1,1 +1,0 @@
-designerQ.init({selector: '#main', mode: 'constructor', dataTemplate: '[{"id":1,"type":"one","text":"A","variants":["1","2"]},{"id":2,"type":"text","text":"B"},{"id":3,"type":"description","text":"C"}]'});

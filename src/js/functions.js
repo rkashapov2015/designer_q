@@ -99,3 +99,22 @@ function isHidden(el) {
     var style = window.getComputedStyle(el);
     return (style.display === 'none');
 }
+
+function sendData(url, data, func) {
+    var xhr = new XMLHttpRequest();
+    xhr.addEventListener('load', function (e) {
+        if (func) {
+            func(xhr.response);
+        }
+    });
+    xhr.addEventListener('error', function (e) {
+        console.log("Ошибка " + e.target.status);
+    });
+    var method = "POST";
+    if (!data) {
+        method = "GET";
+    }
+    xhr.open(method, url);
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.send(data);
+}

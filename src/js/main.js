@@ -11,11 +11,11 @@ var designerQ = {
     urlSet: null,
     currentIndexQuestion: 1,
     types: [
-        { name: 'one', title: 'Одинарный выбор', options: {'variants': 1} },
-        { name: 'multi', title: 'Множественный выбор', options: {'variants': 1} },
-        { name: 'text', title: 'Текстовое поле', options: {} },
-        { name: 'big-text', title: 'Абзац', options: {} },
-        { name: 'description', title: 'Описание', options: {} } 
+        { name: 'one', title: 'Одинарный выбор', options: {'variants': 1}, draw: function (options) { return designerQ._drawRadioBlock(options) } },
+        { name: 'multi', title: 'Множественный выбор', options: {'variants': 1}, draw: function (options) { return designerQ._drawCheckboxBlock(options) } },
+        { name: 'text', title: 'Текстовое поле', options: {}, draw: function (options) { return designerQ._drawTextBox(options) } },
+        { name: 'big-text', title: 'Абзац', options: {}, draw: function (options) { return designerQ._drawTextArea(options)} },
+        { name: 'description', title: 'Описание', options: {}, draw: function (options) { return designerQ._drawDescription(options) } }  
     ],
     textAnswer: 'Текст вопроса',
     init: function(args) {
@@ -67,7 +67,12 @@ var designerQ = {
         }
         if (!designerQ.dataTemplate) {
             console.log('data not exist');
+            return false;
         }
+        var data = JSON.parse(designerQ.dataTemplate);
+        Array.from(data).forEach(function (value) {
+            rootTag.appendChild(designerQ.drawQuestionProd(value.type, value));
+        });
         
     },
     drawConstructor: function () {
@@ -98,7 +103,7 @@ var designerQ = {
             designerQ.currentIndexQuestion = parseInt(maxId) + 1;
         }
 
-        fragment.appendChild( el ('div', {class: 'col-xs-12 demo', 'style': 'display: none;'}, []) );
+        fragment.appendChild( el ('div', {class: 'demo', 'style': 'display: none;'}, []) );
 
         fragment.appendChild(
             el ('div', {class: 'constructor-block'}, [
@@ -168,7 +173,12 @@ var designerQ = {
                             var nameArr = value.name.split('_');
                             var name = nameArr[0];
                             var id = nameArr[1];
-                            //console.log(nameArr);
+                            
+                            var typeInput = value.getAttribute('type');
+                            if ((typeInput === 'checkbox' || typeInput === 'radio') && !value.checked) {
+                                return false;
+                            }
+
                             var type = '';
                             if (!arrayData.hasOwnProperty(id)) {
                                 arrayData[id] = {id: parseInt(id)};
@@ -195,7 +205,15 @@ var designerQ = {
                         
                     break;
                     case 'demo':
-                        showBlock(document.querySelector('.constructor-block'));
+                        showBlock(designerQ.parentTag.querySelector('.constructor-block'));
+                        var demoBlock = designerQ.parentTag.querySelector('.demo');
+
+                        showBlock(demoBlock);
+                        clearNode(demoBlock);
+                        if (isHidden(demoBlock)) {
+                            return false;
+                        }
+                        designerQ.draw(demoBlock);
                     break;
                 }
             }
@@ -225,6 +243,9 @@ var designerQ = {
         return el ('div', {class: 'variant-tool'}, [
             el ('div', {class: 'input-group'},[
                 el ('input', {class: 'form-control', name: 'qvar_' + id , 'placeholder': 'Текст варианта', value: value?value:''}),
+                el ('span', {class: 'input-group-addon'}, [
+                    el ('input', {type: "checkbox", name: 'qvar_' + id + '_text', value: 1}, 'Текст')
+                ]),
                 el ('span', {class: 'input-group-btn'}, [
                     el ('button', {class: 'btn btn-danger', 'data-action': 'delete-variant'}, 'X')
                 ])
@@ -285,6 +306,78 @@ var designerQ = {
         });
 
         return common;
+    },
+    drawQuestionProd: function (type, options) {
+        var id = null;
+        var questionText = null;
+        var variants = [];
+        console.log(options);
+        if (typeof options === 'object') {
+            if (options.hasOwnProperty('id')) {
+                id = options.id;
+            }
+            if (options.hasOwnProperty('text')) {
+                questionText = options.text;
+            }
+            if (options.hasOwnProperty('questionText')) {
+                questionText = options.questionText;
+            }
+            if (options.hasOwnProperty('variants')) {
+                variants = options.variants;
+            }
+        }
+        
+        var commonQuestion = null;
+        var className = 'question-view';
+        Array.from(designerQ.types).forEach(function(element) {
+            if (type === element.name) {
+                commonQuestion = element.draw({id: id, questionText: questionText, variants: variants});
+            }
+        });
+        if (type === 'description') {
+            className += ' description';
+        }
+
+        var common = el ('div', {class: className, 'data-id': id?id:''}, [
+            el ('div', {class: 'text-description'}, questionText),
+            commonQuestion
+        ]);
+        return common;
+    },
+    _drawTextBox: function (options) {
+        return el ('input', {class: 'form-control', name: 'q_' + options.id, value: options.value?options.value:''});
+    },
+    _drawTextArea: function (options) {
+        return el ('textarea', {class: 'form-control', name: 'q_' + option.id, value: options.value?options.value:''});
+    },
+    _drawRadioBlock: function (options) {
+        return designerQ._drawCheckboxRadioBlock('radio', options);
+    },
+    _drawCheckboxBlock: function (options) {
+        return designerQ._drawCheckboxRadioBlock('checkbox', options);
+    },
+    _drawCheckboxRadioBlock: function (type, options) {
+        var common = document.createDocumentFragment();
+        
+        Array.from(options.variants).forEach( function (element) {
+            var textNode = document.createTextNode(element);
+            var optionsTag = {type: type, name: 'q_' + options.id};
+            if (options.checkedElements && options.checkedElements.indexOf(element) != -1) {
+                optionsTag['checked'] = 1;
+            }
+            common.appendChild(
+                el ('div', {class: 'variant'}, [
+                    el ('label', {}, [
+                        el ('input', optionsTag),
+                        textNode
+                    ])
+                ])
+            );
+        });
+        return common;
+    },
+    _drawDescription: function (options) {
+        return document.createTextNode('');
     }
 };
 

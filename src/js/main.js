@@ -491,9 +491,12 @@ var designerQ = {
     _saveAnswers: function () {
         var answers = {};
         var frmTag = designerQ.tagView.querySelector('form');
+        if (!frmTag) {
+            return false;
+        }
         var frm = new FormData(frmTag);
         for ( var [k, v] of frm) { 
-            console.log (k, v);
+            //console.log (k, v);
             if (!answers.hasOwnProperty(k)) {
                 answers[k] = v;
             } else {
@@ -502,7 +505,8 @@ var designerQ = {
             }
         }
         designerQ.dataAnswers = answers;
-        console.log(answers);
+        //console.log(answers);
         console.log(JSON.stringify(answers));
+        return true;
     }
 };

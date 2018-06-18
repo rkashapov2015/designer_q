@@ -6,6 +6,7 @@ var designerQ = {
     childClass: 'element',
     dataTemplate: null,
     dataAnswers: null,
+    tagView: null,
     mode: 'default',
     urlGet: null,
     urlSet: null,
@@ -20,15 +21,12 @@ var designerQ = {
     textAnswer: 'Текст вопроса',
     init: function(args) {
         if (typeof args === 'object') {
-            if (args.hasOwnProperty('mode')) {
-                designerQ.mode = args.mode;
-            }
-            if (args.hasOwnProperty('selector')) {
-                designerQ.selector = args.selector;
-            }
-            if (args.hasOwnProperty('dataTemplate')) {
-                this.dataTemplate = args.dataTemplate;
-            }
+            if (args.hasOwnProperty('mode')) { designerQ.mode = args.mode; }
+
+            if (args.hasOwnProperty('selector')) { designerQ.selector = args.selector; }
+
+            if (args.hasOwnProperty('dataTemplate')) { designerQ.dataTemplate = jsonParse(args.dataTemplate); }
+            if (args.hasOwnProperty('dataAnswers')) { designerQ.dataAnswers = jsonParse(args.dataAnswers); }
         }
         if (designerQ.selector === '') {
             console.log('selector is not set');
@@ -65,15 +63,43 @@ var designerQ = {
         if (typeof rootTag === 'undefined') {
             rootTag = designerQ.parentTag;
         }
+        var formTag = document.createElement('form');
+        
         if (!designerQ.dataTemplate) {
             console.log('data not exist');
             return false;
         }
-        var data = JSON.parse(designerQ.dataTemplate);
+        var data = designerQ.dataTemplate;
         Array.from(data).forEach(function (value) {
-            rootTag.appendChild(designerQ.drawQuestionProd(value.type, value));
+            formTag.appendChild(designerQ.drawQuestionProd(value.type, value));
         });
+        var buttonSave = el ('button', {class: 'bnt btn-success'}, 'Сохранить');
         
+        formTag.appendChild(el ('div', {class: 'col-xs-12 text-center'}, [
+            buttonSave
+        ]));
+        buttonSave.addEventListener('click', function (e) {
+            designerQ._saveAnswers();
+        });
+        rootTag.appendChild(formTag);
+        rootTag.addEventListener('change', function (e) {
+            if (e.target.tagName === 'INPUT' && (e.target.type === 'checkbox' || e.target.type === 'radio')) {
+                var name = e.target.name;
+                
+                if (e.target.nextElementSibling) {
+                    var addInput  = e.target.nextElementSibling;
+                    if (e.target.checked) {
+                        addInput.removeAttribute('disabled');
+                    } else {
+                        addInput.value = '';
+                        addInput.setAttribute('disabled', '1');
+                    }
+                    
+                }
+            }
+        });
+
+        designerQ.tagView = rootTag;
     },
     drawConstructor: function () {
         if (!designerQ.parentTag) {
@@ -92,7 +118,7 @@ var designerQ = {
         var fragmentExistedQuestions = document.createDocumentFragment();
 
         if (designerQ.dataTemplate) {
-            var data = JSON.parse(designerQ.dataTemplate);
+            var data = designerQ.dataTemplate;
             var maxId = 1;
             Array.from(data).forEach( function (value) {
                 fragmentExistedQuestions.appendChild(designerQ._drawTemplate(value.type, {id: value.id, variants: value.variants?value.variants:[], questionText: value.text}));
@@ -209,7 +235,8 @@ var designerQ = {
                         var data = Object.values(arrayData);
                         console.log(data);
                         console.log(JSON.stringify(data));
-                        designerQ.dataTemplate = JSON.stringify(data);
+                        //designerQ.dataTemplate = JSON.stringify(data);
+                        designerQ.dataTemplate = data;
                         
                     break;
                     case 'demo':
@@ -277,6 +304,7 @@ var designerQ = {
                 optionVarCheck['checked'] = 1;
             }
         }
+
         return el ('div', {class: 'variant-tool'}, [
             el ('div', {class: 'input-group'},[
                 el ('input', {class: 'form-control', name: 'qvar_' + id , 'placeholder': 'Текст варианта', value: name?name:''}),
@@ -329,7 +357,9 @@ var designerQ = {
         designerQ.types.forEach( function (data) {
             if (type === data.name) {
                 if (data.options.hasOwnProperty('variants')) {
-                    common.appendChild(el ('div', {class: 'col-xs-12 col-sm-2'}, 'Варианты:'))
+                    common.appendChild(el ('div', {class: 'col-xs-12 col-sm-2'}, [
+                        el ('div', {class: 'row'}, 'Варианты:')
+                    ]))
                     common.appendChild(
                         el ('div', {class: 'col-xs-12 col-sm-10'}, [
                             el ('div', {class: 'variants'}, [
@@ -348,7 +378,7 @@ var designerQ = {
         var id = null;
         var questionText = null;
         var variants = [];
-        console.log(options);
+        //console.log(options);
         if (typeof options === 'object') {
             if (options.hasOwnProperty('id')) {
                 id = options.id;
@@ -382,10 +412,21 @@ var designerQ = {
         return common;
     },
     _drawTextBox: function (options) {
-        return el ('input', {class: 'form-control', name: 'q_' + options.id, value: options.value?options.value:''});
+        return designerQ._drawTexts('input', options);
     },
     _drawTextArea: function (options) {
-        return el ('textarea', {class: 'form-control', name: 'q_' + option.id, value: options.value?options.value:''});
+        return designerQ._drawTexts('textarea', options);
+    },
+    _drawTexts: function (type, options) {
+        var name = 'q_' + options.id;
+        var tagOptions = {class: 'form-control', name: name};
+        /*if (options.hasOwnProperty('value')) {
+            tagOptions['value'] = options.value;
+        }*/
+        if (designerQ.dataAnswers && designerQ.dataAnswers.hasOwnProperty(name)) {
+            tagOptions['value'] = designerQ.dataAnswers[name];
+        }
+        return el (type, tagOptions);
     },
     _drawRadioBlock: function (options) {
         return designerQ._drawCheckboxRadioBlock('radio', options);
@@ -396,23 +437,41 @@ var designerQ = {
     _drawCheckboxRadioBlock: function (type, options) {
         var common = document.createDocumentFragment();
         
-        Array.from(options.variants).forEach( function (element) {
+        Array.from(options.variants).forEach( function (element, index) {
             var text = element;
             var additionalField = false;
+            var name = 'q_' + options.id;
             if (typeof element === 'object') {
                 text = element.text;
                 additionalField = true;
+            }
+            
+            if (options.hasOwnProperty('addTexts')) {
+                addTexts = options.addTexts;
             }
 
             var textNode = document.createDocumentFragment();
             textNode.appendChild(document.createTextNode(text));
 
             if (additionalField) {
-                textNode.appendChild(el ('input', {type: 'text', class: 'additional-textbox', placeholder: 'Напишите свой вариант' }))
+                var optionAddText = {type: 'text', class: 'additional-textbox', name: name + '_' + index,  placeholder: 'Напишите свой вариант', 'data-parent': name};
+                /*if (addTexts && addTexts.hasOwnProperty(name + '_text')) {
+                    optionAddText['value'] = addTexts[name + '_text'];
+                }*/
+                if (designerQ.dataAnswers.hasOwnProperty(name + '_' + index)) {
+                    optionAddText['value'] = designerQ.dataAnswers[name + '_' + index];
+                }
+                if (!optionAddText.hasOwnProperty('value')) {
+                    optionAddText.disabled = '1';
+                }
+                textNode.appendChild(el ('input', optionAddText));
             }
 
-            var optionsTag = {type: type, name: 'q_' + options.id};
-            if (options.checkedElements && options.checkedElements.indexOf(text) != -1) {
+            var optionsTag = {type: type, name: name, value: text};
+            if (
+                designerQ.dataAnswers.hasOwnProperty(name) && 
+                designerQ.dataAnswers[name].indexOf(text) != -1
+            ) {
                 optionsTag['checked'] = 1;
             }
             common.appendChild(
@@ -428,7 +487,22 @@ var designerQ = {
     },
     _drawDescription: function (options) {
         return document.createTextNode('');
+    },
+    _saveAnswers: function () {
+        var answers = {};
+        var frmTag = designerQ.tagView.querySelector('form');
+        var frm = new FormData(frmTag);
+        for ( var [k, v] of frm) { 
+            console.log (k, v);
+            if (!answers.hasOwnProperty(k)) {
+                answers[k] = v;
+            } else {
+                answers[k] = [answers[k]];
+                answers[k].push(v);
+            }
+        }
+        designerQ.dataAnswers = answers;
+        console.log(answers);
+        console.log(JSON.stringify(answers));
     }
 };
-
-

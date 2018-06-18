@@ -118,3 +118,12 @@ function sendData(url, data, func) {
     xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     xhr.send(data);
 }
+
+function jsonParse(string) {
+    try {
+        return JSON.parse(string);
+    }
+    catch (err) {
+        return false;
+    }
+}

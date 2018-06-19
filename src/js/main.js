@@ -1,4 +1,3 @@
-
 var designerQ = {
     selector: '',
     parentTag: null,
@@ -231,7 +230,6 @@ var designerQ = {
                                     arrayData[idIndex]['variants'] = [value.value];
                                 }
                             }
-  
                         });
                         //console.log(arrayData);
                         var data = Object.values(arrayData);
@@ -296,7 +294,7 @@ var designerQ = {
     },
     _drawQuestionVariant: function(id, value) {
         name = value;
-        var optionVarCheck = {type: "checkbox", name: 'qvar_' + id + '_text', value: 1};
+        var optionVarCheck = {type: "checkbox", name: 'qvar_' + id + '_text', value: 1, tabindex: -1};
         if (typeof value === 'undefined') {
             name = '';
         }
@@ -314,7 +312,7 @@ var designerQ = {
                     el ('input', optionVarCheck, 'Текст')
                 ]),
                 el ('span', {class: 'input-group-btn'}, [
-                    el ('button', {class: 'btn btn-danger', 'data-action': 'delete-variant'}, 'X')
+                    el ('button', {class: 'btn btn-danger', 'data-action': 'delete-variant', tabindex: -1}, 'X')
                 ])
             ])
         ])
@@ -457,23 +455,26 @@ var designerQ = {
 
             if (additionalField) {
                 var optionAddText = {type: 'text', class: 'additional-textbox', name: name + '_' + index,  placeholder: 'Напишите свой вариант', 'data-parent': name};
-                /*if (addTexts && addTexts.hasOwnProperty(name + '_text')) {
-                    optionAddText['value'] = addTexts[name + '_text'];
-                }*/
-                if (designerQ.dataAnswers.hasOwnProperty(name + '_' + index)) {
-                    optionAddText['value'] = designerQ.dataAnswers[name + '_' + index];
+
+                if (designerQ.dataAnswers) {
+                    if (designerQ.dataAnswers.hasOwnProperty(name + '_' + index)) {
+                        optionAddText['value'] = designerQ.dataAnswers[name + '_' + index];
+                    }
+                    if (
+                        (designerQ.dataAnswers.hasOwnProperty(name) && designerQ.dataAnswers[name].indexOf(text) == -1) && 
+                        !optionAddText.hasOwnProperty('value')
+                    ) 
+                    {
+                        optionAddText.disabled = '1';
+                    }
                 }
-                if (
-                    (designerQ.dataAnswers.hasOwnProperty(name) && designerQ.dataAnswers[name].indexOf(text) == -1) && 
-                    !optionAddText.hasOwnProperty('value')) 
-                {
-                    optionAddText.disabled = '1';
-                }
+
                 textNode.appendChild(el ('input', optionAddText));
             }
 
             var optionsTag = {type: type, name: name, value: text};
             if (
+                designerQ.dataAnswers &&
                 designerQ.dataAnswers.hasOwnProperty(name) && 
                 designerQ.dataAnswers[name].indexOf(text) != -1
             ) {

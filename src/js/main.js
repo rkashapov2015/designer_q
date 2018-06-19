@@ -73,12 +73,13 @@ var designerQ = {
         Array.from(data).forEach(function (value) {
             formTag.appendChild(designerQ.drawQuestionProd(value.type, value));
         });
-        var buttonSave = el ('button', {class: 'bnt btn-success'}, 'Сохранить');
+        var buttonSave = el ('button', {class: 'btn btn-success'}, 'Сохранить');
         
         formTag.appendChild(el ('div', {class: 'col-xs-12 text-center'}, [
             buttonSave
         ]));
         buttonSave.addEventListener('click', function (e) {
+            e.preventDefault();
             designerQ._saveAnswers();
         });
         rootTag.appendChild(formTag);
@@ -199,6 +200,7 @@ var designerQ = {
                             var nameArr = value.name.split('_');
                             var name = nameArr[0];
                             var id = nameArr[1];
+                            var idIndex = 'q_' + id;
                             
                             var typeInput = value.getAttribute('type');
                             if ((typeInput === 'checkbox' || typeInput === 'radio') && !value.checked) {
@@ -206,34 +208,34 @@ var designerQ = {
                             }
 
                             var type = '';
-                            if (!arrayData.hasOwnProperty(id)) {
-                                arrayData[id] = {id: parseInt(id)};
+                            if (!arrayData.hasOwnProperty(idIndex)) {
+                                arrayData[idIndex] = {id: parseInt(id)};
                             }
                             if (name === 'typeQuestion') {
-                                arrayData[id]['type'] = value.value;
+                                arrayData[idIndex]['type'] = value.value;
                             }
                             if (name === 'questionName') {
-                                arrayData[id]['text'] = value.value;
+                                arrayData[idIndex]['text'] = value.value;
                             }
                             if (name === 'qvar') {
-                                if (arrayData[id].hasOwnProperty('variants')) {
+                                if (arrayData[idIndex].hasOwnProperty('variants')) {
                                     
-                                    if (nameArr.length > 2 && arrayData[id]['variants'].length > 0 ) {
-                                        var old = arrayData[id]['variants'][arrayData[id]['variants'].length-1];
-                                        arrayData[id]['variants'][arrayData[id]['variants'].length-1] = {'text': old, checked: 1};
+                                    if (nameArr.length > 2 && arrayData[idIndex]['variants'].length > 0 ) {
+                                        var old = arrayData[idIndex]['variants'][arrayData[idIndex]['variants'].length-1];
+                                        arrayData[idIndex]['variants'][arrayData[idIndex]['variants'].length-1] = {'text': old, checked: 1};
                                     } else {
-                                        arrayData[id]['variants'].push(value.value);
+                                        arrayData[idIndex]['variants'].push(value.value);
                                     }
                                     
                                 } else {
-                                    arrayData[id]['variants'] = [value.value];
+                                    arrayData[idIndex]['variants'] = [value.value];
                                 }
                             }
   
                         });
                         //console.log(arrayData);
                         var data = Object.values(arrayData);
-                        console.log(data);
+                        //console.log(data);
                         console.log(JSON.stringify(data));
                         //designerQ.dataTemplate = JSON.stringify(data);
                         designerQ.dataTemplate = data;
@@ -461,7 +463,10 @@ var designerQ = {
                 if (designerQ.dataAnswers.hasOwnProperty(name + '_' + index)) {
                     optionAddText['value'] = designerQ.dataAnswers[name + '_' + index];
                 }
-                if (!optionAddText.hasOwnProperty('value')) {
+                if (
+                    (designerQ.dataAnswers.hasOwnProperty(name) && designerQ.dataAnswers[name].indexOf(text) == -1) && 
+                    !optionAddText.hasOwnProperty('value')) 
+                {
                     optionAddText.disabled = '1';
                 }
                 textNode.appendChild(el ('input', optionAddText));

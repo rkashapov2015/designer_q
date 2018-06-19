@@ -18,7 +18,8 @@ var dragElement = {
         }
         dragElement.parentElements = document.querySelector('.' + dragElement.parentClass);
         dragElement.parentElements.addEventListener('mousedown', function (e) {
-            if (!e.target.classList.contains(dragElement.childClass)) { return false; }
+            
+            if (!e.target.classList.contains(dragElement.childClass) || e.button != 0) { return false; }
             dragElement.movedElement = e.target;
             var bounds = e.target.getBoundingClientRect();
 

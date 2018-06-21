@@ -7,9 +7,9 @@ var designerQ = {
     dataAnswers: null,
     tagView: null,
     mode: 'default',
-    urlGet: null,
-    urlSet: null,
+    saveFunc: function (data) {},
     currentIndexQuestion: 1,
+    currentIndexVariant: 1,
     types: [
         { name: 'one', title: 'Одинарный выбор', options: {'variants': 1}, draw: function (options) { return designerQ._drawRadioBlock(options) } },
         { name: 'multi', title: 'Множественный выбор', options: {'variants': 1}, draw: function (options) { return designerQ._drawCheckboxBlock(options) } },
@@ -26,6 +26,7 @@ var designerQ = {
 
             if (args.hasOwnProperty('dataTemplate')) { designerQ.dataTemplate = jsonParse(args.dataTemplate); }
             if (args.hasOwnProperty('dataAnswers')) { designerQ.dataAnswers = jsonParse(args.dataAnswers); }
+            if (args.hasOwnProperty('saveFunc')) { designerQ.saveFunc = args.saveFunc; }
         }
         if (designerQ.selector === '') {
             console.log('selector is not set');
@@ -35,6 +36,26 @@ var designerQ = {
         if (!designerQ.parentTag) {
             return false;
         }
+        if (designerQ.dataTemplate) {
+            var maxId = 1;
+            var maxVarId = 1;
+            Array.from(designerQ.dataTemplate).forEach( function (element) {
+                if (parseInt(element.id) > maxId ) {
+                    maxId = parseInt(element.id);
+                }
+
+                if (element.hasOwnProperty('variants')) {
+                    Array.from(element.variants).forEach (function (variant) {
+                        if (parseInt(variant.id) > maxVarId) {
+                            maxVarId = parseInt(variant.id);
+                        }
+                    });
+                }
+            });
+            designerQ.currentIndexQuestion = maxId++;
+            designerQ.currentIndexVariant = maxVarId++;
+        }
+        
 
         if (designerQ.mode === 'default') {
             designerQ.draw();
@@ -95,6 +116,19 @@ var designerQ = {
                         addInput.setAttribute('disabled', '1');
                     }
                     
+                }
+                if (e.target.type == "radio") {
+                    Array.from(rootTag.querySelectorAll('input[name="'+ e.target.name +'"]')).forEach( function (element) {
+                        if (element.nextElementSibling) {
+                            var addInput  = element.nextElementSibling;
+                            if (element.checked) {
+                                addInput.removeAttribute('disabled');
+                            } else {
+                                addInput.value = '';
+                                addInput.setAttribute('disabled', '1');
+                            }
+                        }
+                    });
                 }
             }
         });
@@ -220,14 +254,14 @@ var designerQ = {
                                 if (arrayData[idIndex].hasOwnProperty('variants')) {
                                     
                                     if (nameArr.length > 2 && arrayData[idIndex]['variants'].length > 0 ) {
-                                        var old = arrayData[idIndex]['variants'][arrayData[idIndex]['variants'].length-1];
-                                        arrayData[idIndex]['variants'][arrayData[idIndex]['variants'].length-1] = {'text': old, checked: 1};
+                                        //var old = arrayData[idIndex]['variants'][arrayData[idIndex]['variants'].length-1];
+                                        arrayData[idIndex]['variants'][arrayData[idIndex]['variants'].length-1]['checked'] = 1;
                                     } else {
-                                        arrayData[idIndex]['variants'].push(value.value);
+                                        arrayData[idIndex]['variants'].push({id: value.dataset.varId, text: value.value});
                                     }
                                     
                                 } else {
-                                    arrayData[idIndex]['variants'] = [value.value];
+                                    arrayData[idIndex]['variants'] = [{id: value.dataset.varId, text: value.value}];
                                 }
                             }
                         });
@@ -307,7 +341,7 @@ var designerQ = {
 
         return el ('div', {class: 'variant-tool'}, [
             el ('div', {class: 'input-group'},[
-                el ('input', {class: 'form-control', name: 'qvar_' + id , 'placeholder': 'Текст варианта', value: name?name:''}),
+                el ('input', {class: 'form-control', name: 'qvar_' + id , 'placeholder': 'Текст варианта', value: name?name:'', 'data-var-id': designerQ.currentIndexVariant++}),
                 el ('span', {class: 'input-group-addon'}, [
                     el ('input', optionVarCheck, 'Текст')
                 ]),
@@ -438,18 +472,13 @@ var designerQ = {
         var common = document.createDocumentFragment();
         
         Array.from(options.variants).forEach( function (element, index) {
-            var text = element;
+            var text = element.text;
             var additionalField = false;
             var name = 'q_' + options.id;
-            if (typeof element === 'object') {
-                text = element.text;
+            if (element.hasOwnProperty('checked') && element.checked) {
                 additionalField = true;
             }
             
-            if (options.hasOwnProperty('addTexts')) {
-                addTexts = options.addTexts;
-            }
-
             var textNode = document.createDocumentFragment();
             textNode.appendChild(document.createTextNode(text));
 
@@ -461,22 +490,27 @@ var designerQ = {
                         optionAddText['value'] = designerQ.dataAnswers[name + '_' + index];
                     }
                     if (
-                        (designerQ.dataAnswers.hasOwnProperty(name) && designerQ.dataAnswers[name].indexOf(text) == -1) && 
-                        !optionAddText.hasOwnProperty('value')
-                    ) 
-                    {
+                        (
+                            designerQ.dataAnswers.hasOwnProperty(name) && 
+                            //designerQ.dataAnswers[name].indexOf(text) == -1
+                            findInObjects(designerQ.dataAnswers[name], 'id', element.id) != -1
+                        ) || 
+                        !designerQ.dataAnswers.hasOwnProperty(name)
+                    ) {
                         optionAddText.disabled = '1';
                     }
+                } else {
+                    optionAddText.disabled = '1';
                 }
-
                 textNode.appendChild(el ('input', optionAddText));
             }
 
-            var optionsTag = {type: type, name: name, value: text};
+            var optionsTag = {type: type, name: name, value: element.id};
             if (
                 designerQ.dataAnswers &&
                 designerQ.dataAnswers.hasOwnProperty(name) && 
-                designerQ.dataAnswers[name].indexOf(text) != -1
+                //designerQ.dataAnswers[name].indexOf(text) != -1
+                findInObjects(designerQ.dataAnswers[name], 'id', element.id) != -1
             ) {
                 optionsTag['checked'] = 1;
             }
@@ -512,7 +546,11 @@ var designerQ = {
         }
         designerQ.dataAnswers = answers;
         //console.log(answers);
-        console.log(JSON.stringify(answers));
+        if (typeof designerQ.saveFunc === 'function') {
+            designerQ.saveFunc(answers);
+        }
+
+        //console.log(JSON.stringify(answers));
         return true;
     }
 };

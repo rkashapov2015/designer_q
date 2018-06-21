@@ -127,3 +127,19 @@ function jsonParse(string) {
         return false;
     }
 }
+
+function findInObjects(array, name, value) {
+    var searchIndex = -1;
+
+    if (!array) {
+        return searchIndex;
+    }
+
+    Array.from(array).forEach( function (element, index) {
+        if (element.hasOwnProperty(name) && element[name] === value) {
+            searchIndex = index;
+        }
+    });
+
+    return searchIndex;
+}

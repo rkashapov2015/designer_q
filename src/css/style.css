@@ -123,6 +123,9 @@ input:hover {
     margin-bottom: 5px;
     border-radius: 2px;
 }
+.question-view > textarea {
+    resize: vertical;
+}
 .question-view:before, .question-view:after {
     content: '';
     display: table;
@@ -146,7 +149,7 @@ input:hover {
     color: #333;
     font-weight: normal;
     float: left;
-    width: 33.33%;
+    width: 33.333%;
 }
 
 .variant > label {

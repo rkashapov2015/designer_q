@@ -22,11 +22,13 @@ var dragElement = {
             if (!e.target.classList.contains(dragElement.childClass) || e.button != 0) { return false; }
             dragElement.movedElement = e.target;
             var bounds = e.target.getBoundingClientRect();
-
+            //console.log(bounds);
+            //console.log(window.pageXOffset, window.pageYOffset);
+            var boundsParent = e.target.parentNode.getBoundingClientRect();
             dragElement.boundsX = bounds.left;
             dragElement.boundsY = bounds.top;
-            dragElement.shiftX = e.pageX - bounds.left - window.pageXOffset;
-            dragElement.shiftY = e.pageY - bounds.top - window.pageYOffset;
+            dragElement.shiftX = e.pageX - bounds.left;
+            dragElement.shiftY = e.pageY - (bounds.top - boundsParent.top );
             //console.log('shift', dragElement.shiftX, dragElement.shiftY);
         });
         

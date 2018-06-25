@@ -116,7 +116,35 @@ function sendData(url, data, func) {
     }
     xhr.open(method, url);
     xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    if (method == 'POST') {
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        //xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+        
+        if (typeof data == 'object') {
+            data = stringifyObject(data);
+        }
+    }
     xhr.send(data);
+}
+
+function stringifyObject(obj, prefix) {
+    
+    var str = [], p;
+    for (p in obj) {
+        if (obj.hasOwnProperty(p)) {
+        var k = prefix ? prefix + "[" + p + "]" : p,
+            v = obj[p];
+        str.push((v !== null && typeof v === "object") ?
+            stringifyObject(v, k) :
+            encodeURIComponent(k) + "=" + encodeURIComponent(v));
+        }
+    }
+    return str.join("&");
+    /*return Array.from(Object.keys(obj)).reduce(
+        function (prev, cur, idx) {
+            return idx == 1 ? prev + '=' + obj[prev] + '&' + cur+ '=' + obj[cur] : prev + '&' + cur + '=' + obj[cur];
+        }
+    );*/
 }
 
 function jsonParse(string) {

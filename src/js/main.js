@@ -271,6 +271,9 @@ var designerQ = {
                         console.log(JSON.stringify(data));
                         //designerQ.dataTemplate = JSON.stringify(data);
                         designerQ.dataTemplate = data;
+                        if (designerQ.mode === 'constructor' && typeof designerQ.saveFunc === 'function') {
+                            designerQ.saveFunc(data);
+                        }
                         
                     break;
                     case 'demo':
@@ -546,7 +549,7 @@ var designerQ = {
         }
         designerQ.dataAnswers = answers;
         //console.log(answers);
-        if (typeof designerQ.saveFunc === 'function') {
+        if (designerQ.mode === 'default' && typeof designerQ.saveFunc === 'function') {
             designerQ.saveFunc(answers);
         }
 

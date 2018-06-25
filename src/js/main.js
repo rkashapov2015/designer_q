@@ -543,7 +543,9 @@ var designerQ = {
             if (!answers.hasOwnProperty(k)) {
                 answers[k] = v;
             } else {
-                answers[k] = [answers[k]];
+                if (!(answers[k] instanceof Array)) {
+                    answers[k] = [answers[k]];
+                }
                 answers[k].push(v);
             }
         }

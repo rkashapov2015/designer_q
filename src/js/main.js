@@ -462,7 +462,7 @@ var designerQ = {
         }*/
         var child = '';
         if (designerQ.dataAnswers && designerQ.dataAnswers.hasOwnProperty(name)) {
-            if (type === 'text') {
+            if (type == 'input') {
                 tagOptions['value'] = designerQ.dataAnswers[name];
             } else {
                 child = designerQ.dataAnswers[name];

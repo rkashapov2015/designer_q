@@ -460,10 +460,15 @@ var designerQ = {
         /*if (options.hasOwnProperty('value')) {
             tagOptions['value'] = options.value;
         }*/
+        var child = '';
         if (designerQ.dataAnswers && designerQ.dataAnswers.hasOwnProperty(name)) {
-            tagOptions['value'] = designerQ.dataAnswers[name];
+            if (type === 'text') {
+                tagOptions['value'] = designerQ.dataAnswers[name];
+            } else {
+                child = designerQ.dataAnswers[name];
+            }
         }
-        return el (type, tagOptions);
+        return el (type, tagOptions, child);
     },
     _drawRadioBlock: function (options) {
         return designerQ._drawCheckboxRadioBlock('radio', options);

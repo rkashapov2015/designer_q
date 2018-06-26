@@ -478,28 +478,45 @@ var designerQ = {
             var text = element.text;
             var additionalField = false;
             var name = 'q_' + options.id;
+            //console.log(name);
             if (element.hasOwnProperty('checked') && element.checked) {
                 additionalField = true;
             }
             
+            var optionsTag = {type: type, name: name, value: element.id};
+
             var textNode = document.createDocumentFragment();
             textNode.appendChild(document.createTextNode(text));
 
+            if (
+                designerQ.dataAnswers &&
+                designerQ.dataAnswers.hasOwnProperty(name) && 
+                designerQ.dataAnswers[name].indexOf(element.id) != -1
+                //findInObjects(designerQ.dataAnswers[name], 'id', element.id) != -1
+            ) {
+                optionsTag['checked'] = 1;
+            }
+
             if (additionalField) {
-                var optionAddText = {type: 'text', class: 'additional-textbox', name: name + '_' + index,  placeholder: 'Напишите свой вариант', 'data-parent': name};
+                var optionAddText = {type: 'text', class: 'additional-textbox', name: name + '_' + element.id,  placeholder: 'Напишите свой вариант', 'data-parent': name};
 
                 if (designerQ.dataAnswers) {
-                    if (designerQ.dataAnswers.hasOwnProperty(name + '_' + index)) {
-                        optionAddText['value'] = designerQ.dataAnswers[name + '_' + index];
-                    }
                     if (
+                        designerQ.dataAnswers.hasOwnProperty(name + '_' + element.id) &&
+                        optionsTag.hasOwnProperty('checked') && optionsTag.checked == 1
+                    ) {
+                        //console.log(designerQ.dataAnswers[name + '_' + element.id]);
+                        optionAddText['value'] = designerQ.dataAnswers[name + '_' + element.id];
+                    }
+                    /*if (
                         (
                             designerQ.dataAnswers.hasOwnProperty(name) && 
                             //designerQ.dataAnswers[name].indexOf(text) == -1
                             findInObjects(designerQ.dataAnswers[name], 'id', element.id) != -1
                         ) || 
                         !designerQ.dataAnswers.hasOwnProperty(name)
-                    ) {
+                    ) */
+                    if (!optionsTag.hasOwnProperty('checked')) {
                         optionAddText.disabled = '1';
                     }
                 } else {
@@ -508,15 +525,9 @@ var designerQ = {
                 textNode.appendChild(el ('input', optionAddText));
             }
 
-            var optionsTag = {type: type, name: name, value: element.id};
-            if (
-                designerQ.dataAnswers &&
-                designerQ.dataAnswers.hasOwnProperty(name) && 
-                //designerQ.dataAnswers[name].indexOf(text) != -1
-                findInObjects(designerQ.dataAnswers[name], 'id', element.id) != -1
-            ) {
-                optionsTag['checked'] = 1;
-            }
+            
+            //console.log(designerQ.dataAnswers[name], , findInObjects( designerQ.dataAnswers[name], 'id', element.id));
+            
             common.appendChild(
                 el ('div', {class: 'variant'}, [
                     el ('label', {}, [
